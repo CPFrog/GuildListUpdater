@@ -1,0 +1,85 @@
+import time
+import sys
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import Qt
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
+import chromedriver_autoinstaller
+
+guild_url = "https://loawa.com/guild/"
+url = "https://loawa.com/char/"
+
+
+class MyApp(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle('로스트아크 길드원 목록 갱신')
+        grid = QGridLayout()
+        self.setLayout(grid)
+
+        grid.addWidget(QLabel('길드명:'), 0, 0)
+
+        self.gname_text = QLineEdit()
+        grid.addWidget(self.gname_text, 0, 1)
+
+        search_btn = QPushButton('검색', self)
+        search_btn.clicked.connect(self.button_event)
+        grid.addWidget(search_btn, 1, 1)
+        self.setGeometry(300, 300, 300, 200)
+        self.show()
+
+    def button_event(self):
+        global guild
+        guild = self.gname_text.text()
+
+        list_update(guild)
+        QMessageBox.information(self, '완료 알림', '길드원 목록 갱신이 완료되었습니다.')
+        self.close()
+
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key_Enter:
+            self.button_event()
+
+        elif e.key()==Qt.Key_Escape:
+            self.close()
+
+    def closeEvent(self, e):
+        QMessageBox.information(self, '프로그램 종료 알림', '프로그램이 종료됩니다.')
+
+
+def list_update(guild_name):
+    options = webdriver.ChromeOptions()  # 옵션 생성
+    options.add_argument("--headless")  # 창 숨기는 옵션 추가
+    global chrome_ver
+    chrome_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]  # 크롬 드라이버 버전 확인
+
+    try:
+        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver', options=options)
+    except:
+        chromedriver_autoinstaller.install(True)
+        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver', options=options)
+
+    driver.implicitly_wait(10)
+
+    driver.get(guild_url + guild_name)
+    guild_soup = BeautifulSoup(driver.page_source, 'html.parser')
+    # print(guild_soup)
+    member_list = guild_soup.find_all('table', {'class': 'tfs13'})
+
+
+    for iter in member_list:
+        cname = iter.find('span', {'class': 'text-theme-0 tfs13'}).text.strip()
+        print(cname)
+        driver.get(url + cname)
+        time.sleep(2)
+
+    driver.quit()
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = MyApp()
+    sys.exit(app.exec_())
