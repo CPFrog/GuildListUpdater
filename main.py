@@ -16,7 +16,7 @@ class MyApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('로아와 길드원 최신화 프로그램 v1.0 -by CP개구링')
+        self.setWindowTitle('로아와 길드원 최신화 프로그램 v1.0.1 -by CP개구링')
         grid = QGridLayout()
         self.setLayout(grid)
 
@@ -26,7 +26,7 @@ class MyApp(QWidget):
         self.gname_text.returnPressed.connect(self.button_event)
         grid.addWidget(self.gname_text, 0, 1)
 
-        search_btn = QPushButton('검색', self)
+        search_btn = QPushButton('갱신 시작', self)
         search_btn.clicked.connect(self.button_event)
         grid.addWidget(search_btn, 1, 1)
 
