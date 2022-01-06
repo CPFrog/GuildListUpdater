@@ -37,9 +37,10 @@ class MyApp(QWidget):
     def button_event(self):
         global guild
         guild = self.gname_text.text()
+        startTime=time.time()
 
         self.list_update(guild)
-        QMessageBox.information(self, '완료 알림', '길드원 목록 갱신이 완료되었습니다.')
+        QMessageBox.information(self, '완료 알림', f'길드원 목록 갱신이 완료되었습니다.\n 소요시간: {time.time()-startTime:.2f}초')
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Enter:
@@ -64,10 +65,10 @@ class MyApp(QWidget):
             options = webdriver.EdgeOptions()  # 옵션 생성
             options.add_argument("--headless")  # 창 숨기는 옵션 추가
             try:
-                driver = webdriver.Edge(f'./{driver_ver}/edgedriver', options=options)
+                driver = webdriver.Edge(f'./{driver_ver}/msedgedriver', options=options)
             except:
                 edgedriver_autoinstaller.install(True)
-                driver = webdriver.Edge(f'./{driver_ver}/edgedriver', options=options)
+                driver = webdriver.Edge(f'./{driver_ver}/msedgedriver', options=options)
 
         elif browser == "chrome":
             options = webdriver.ChromeOptions()  # 옵션 생성
