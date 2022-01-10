@@ -4,12 +4,11 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from selenium import webdriver
 from bs4 import BeautifulSoup
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import chromedriver_autoinstaller
 import edgedriver_autoinstaller
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-guild_url = 'https://loawa.com/guild/'
-url = 'https://loawa.com/char/'
+from multiprocessing import Pool
 
 
 class MyApp(QWidget):
@@ -18,7 +17,7 @@ class MyApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('로스트아크 길드원 목록 갱신 v1.2.1 by CP개구링')
+        self.setWindowTitle('로스트아크 길드원 목록 갱신 v1.3 by CP개구링')
         grid = QGridLayout()
         self.setLayout(grid)
 
@@ -36,11 +35,11 @@ class MyApp(QWidget):
         self.show()
 
     def button_event(self):
-        global guild
         guild = self.gname_text.text()
         startTime = time.time()
 
-        self.list_update(guild)
+        pool = Pool(processes=8)
+        pool.map(member_update, getlist(guild))
         QMessageBox.information(self, '완료 알림', f'길드원 목록 갱신이 완료되었습니다.\n소요시간: {time.time() - startTime:.2f}초')
 
     def keyPressEvent(self, e):
@@ -53,55 +52,75 @@ class MyApp(QWidget):
     def closeEvent(self, e):
         QMessageBox.information(self, '프로그램 종료 알림', '프로그램이 종료됩니다.')
 
-    def list_update(self, guild_name):
-        global driver_ver
+
+def getlist(guild_name):
+    driver_ver, browser = get_driver_ver()
+    driver = getdriver(driver_ver, browser)
+
+    guild_url = 'https://loawa.com/guild/'
+    driver.get(guild_url + guild_name)
+    guild_soup = BeautifulSoup(driver.page_source, 'html.parser')
+    member_list = guild_soup.find_all('table', {'class': 'tfs13'})
+
+    driver.quit()
+
+    return member_list
+
+
+def get_driver_ver():
+    try:
+        driver_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]
+        browser = 0  # chrome의 브라우저 코드 = 0
+    except:  # Edge 브라우저가 없는 환경인 경우 --> 크롬으로 대체
+        driver_ver = edgedriver_autoinstaller.get_edge_version().split('.')[0]  # Edge 브라우저 드라이버 버전 확인
+        browser = 1  # edge의 브라우저 코드 = 1
+    # 나중에 할진 모르겠지만.. safari = 2, firefox = 3, opera = 4
+    return driver_ver, browser
+
+
+def member_update(member_list):
+    driver_ver, browser = get_driver_ver()
+    driver = getdriver(driver_ver, browser, False)
+    url = 'https://loawa.com/char/'
+    for itr in member_list:
+        cname = itr.find('span', {'class': 'text-theme-0 tfs13'}).text.strip()
+        driver.get(url + cname)
+
+    driver.quit()
+
+
+def getdriver(ver, browser_type, needwait=True):
+    if browser_type == 0:
+        options = webdriver.ChromeOptions()  # 옵션 생성
+        options.add_argument('--headless')  # 창 숨기는 옵션 추가
+        dc = DesiredCapabilities.CHROME.copy()
+        dc['loggingPrefs'] = {'driver': 'OFF', 'server': 'OFF', 'browser': 'OFF'}
+        if not needwait:
+            dc['pageLoadStrategy'] = 'none'
         try:
-            driver_ver = edgedriver_autoinstaller.get_edge_version().split('.')[0]  # Edge 브라우저 드라이버 버전 확인
-            browser = 0  # edge의 브라우저 코드 = 0
-        except:  # Edge 브라우저가 없는 환경인 경우 --> 크롬으로 대체
-            driver_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]
-            browser = 1  # chrome의 브라우저 코드 = 1
-        # 나중에 할진 모르겠지만.. safari = 2, firefox = 3, opera = 4
+            driver = webdriver.Chrome(f'./{ver}/chromedriver', options=options, desired_capabilities=dc)
+        except:
+            chromedriver_autoinstaller.install(True)
+            driver = webdriver.Chrome(f'./{ver}/chromedriver', options=options, desired_capabilities=dc)
 
-        if browser == 0:
-            options = webdriver.EdgeOptions()  # 옵션 생성
-            options.add_argument('--headless')  # 창 숨기는 옵션 추가
-            try:
-                driver = webdriver.Edge(f'./{driver_ver}/msedgedriver', options=options)
-            except:
-                edgedriver_autoinstaller.install(True)
-                driver = webdriver.Edge(f'./{driver_ver}/msedgedriver', options=options)
+    elif browser_type == 1:
+        options = webdriver.EdgeOptions()  # 옵션 생성
+        options.add_argument('--headless')  # 창 숨기는 옵션 추가
+        dc = DesiredCapabilities.EDGE.copy()
+        dc['loggingPrefs'] = {'driver': 'OFF', 'server': 'OFF', 'browser': 'OFF'}
+        if not needwait:
+            dc['pageLoadStrategy'] = 'none'
+        try:
+            driver = webdriver.Edge(f'./{ver}/msedgedriver', options=options, capabilities=dc)
+        except:
+            edgedriver_autoinstaller.install(True)
+            driver = webdriver.Edge(f'./{ver}/msedgedriver', options=options, capabilities=dc)
 
-        elif browser == 1:
-            options = webdriver.ChromeOptions()  # 옵션 생성
-            options.add_argument('--headless')  # 창 숨기는 옵션 추가
-            try:
-                driver = webdriver.Chrome(f'./{driver_ver}/chromedriver', options=options)
-            except:
-                chromedriver_autoinstaller.install(True)
-                driver = webdriver.Chrome(f'./{driver_ver}/chromedriver', options=options)
-        driver.implicitly_wait(3)
-
-        driver.get(guild_url + guild_name)
-        guild_soup = BeautifulSoup(driver.page_source, 'html.parser')
-        member_list = guild_soup.find_all('table', {'class': 'tfs13'})
-
-        # 나중에 브라우저 종류 추가될 경우 if-elif문 형태로 변경할것
-        if browser == 0:
-            caps = DesiredCapabilities().EDGE
-        else:
-            caps = DesiredCapabilities().CHROME
-        caps['pageLoadStrategy'] = 'none'
-
-        for itr in member_list:
-            cname = itr.find('span', {'class': 'text-theme-0 tfs13'}).text.strip()
-            # print(cname)
-            driver.get(url + cname)
-
-        driver.quit()
+    return driver
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    sys.setrecursionlimit(10 ** 6)
     ex = MyApp()
     sys.exit(app.exec_())
