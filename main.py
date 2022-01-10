@@ -18,7 +18,7 @@ class MyApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('로스트아크 길드원 목록 갱신 v1.2 by CP개구링')
+        self.setWindowTitle('로스트아크 길드원 목록 갱신 v1.2.1 by CP개구링')
         grid = QGridLayout()
         self.setLayout(grid)
 
@@ -66,8 +66,6 @@ class MyApp(QWidget):
         if browser == 0:
             options = webdriver.EdgeOptions()  # 옵션 생성
             options.add_argument('--headless')  # 창 숨기는 옵션 추가
-            caps = DesiredCapabilities().EDGE
-            caps['pageLoadStrategy'] = 'none'
             try:
                 driver = webdriver.Edge(f'./{driver_ver}/msedgedriver', options=options)
             except:
@@ -77,22 +75,27 @@ class MyApp(QWidget):
         elif browser == 1:
             options = webdriver.ChromeOptions()  # 옵션 생성
             options.add_argument('--headless')  # 창 숨기는 옵션 추가
-            caps = DesiredCapabilities().CHROME
-            caps['pageLoadStrategy'] = 'none'
             try:
                 driver = webdriver.Chrome(f'./{driver_ver}/chromedriver', options=options)
             except:
                 chromedriver_autoinstaller.install(True)
                 driver = webdriver.Chrome(f'./{driver_ver}/chromedriver', options=options)
-
         driver.implicitly_wait(3)
 
         driver.get(guild_url + guild_name)
         guild_soup = BeautifulSoup(driver.page_source, 'html.parser')
         member_list = guild_soup.find_all('table', {'class': 'tfs13'})
 
+        # 나중에 브라우저 종류 추가될 경우 if-elif문 형태로 변경할것
+        if browser == 0:
+            caps = DesiredCapabilities().EDGE
+        else:
+            caps = DesiredCapabilities().CHROME
+        caps['pageLoadStrategy'] = 'none'
+
         for itr in member_list:
             cname = itr.find('span', {'class': 'text-theme-0 tfs13'}).text.strip()
+            print(cname)
             driver.get(url + cname)
 
         driver.quit()
