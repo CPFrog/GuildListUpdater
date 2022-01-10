@@ -8,8 +8,8 @@ import chromedriver_autoinstaller
 import edgedriver_autoinstaller
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-guild_url = "https://loawa.com/guild/"
-url = "https://loawa.com/char/"
+guild_url = 'https://loawa.com/guild/'
+url = 'https://loawa.com/char/'
 
 
 class MyApp(QWidget):
@@ -18,7 +18,7 @@ class MyApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('로스트아크 길드원 목록 갱신 v1.1 by CP개구링')
+        self.setWindowTitle('로스트아크 길드원 목록 갱신 v1.2 by CP개구링')
         grid = QGridLayout()
         self.setLayout(grid)
 
@@ -57,14 +57,15 @@ class MyApp(QWidget):
         global driver_ver
         try:
             driver_ver = edgedriver_autoinstaller.get_edge_version().split('.')[0]  # Edge 브라우저 드라이버 버전 확인
-            browser = "edge"
+            browser = 0  # edge의 브라우저 코드 = 0
         except:  # Edge 브라우저가 없는 환경인 경우 --> 크롬으로 대체
             driver_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]
-            browser = "chrome"
+            browser = 1  # chrome의 브라우저 코드 = 1
+        # 나중에 할진 모르겠지만.. safari = 2, firefox = 3, opera = 4
 
-        if browser == "edge":
+        if browser == 0:
             options = webdriver.EdgeOptions()  # 옵션 생성
-            options.add_argument("--headless")  # 창 숨기는 옵션 추가
+            options.add_argument('--headless')  # 창 숨기는 옵션 추가
             caps = DesiredCapabilities().EDGE
             caps['pageLoadStrategy'] = 'none'
             try:
@@ -73,9 +74,9 @@ class MyApp(QWidget):
                 edgedriver_autoinstaller.install(True)
                 driver = webdriver.Edge(f'./{driver_ver}/msedgedriver', options=options)
 
-        elif browser == "chrome":
+        elif browser == 1:
             options = webdriver.ChromeOptions()  # 옵션 생성
-            options.add_argument("--headless")  # 창 숨기는 옵션 추가
+            options.add_argument('--headless')  # 창 숨기는 옵션 추가
             caps = DesiredCapabilities().CHROME
             caps['pageLoadStrategy'] = 'none'
             try:
