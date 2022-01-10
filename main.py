@@ -6,6 +6,7 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 import chromedriver_autoinstaller
 import edgedriver_autoinstaller
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 guild_url = "https://loawa.com/guild/"
 url = "https://loawa.com/char/"
@@ -37,10 +38,10 @@ class MyApp(QWidget):
     def button_event(self):
         global guild
         guild = self.gname_text.text()
-        startTime=time.time()
+        startTime = time.time()
 
         self.list_update(guild)
-        QMessageBox.information(self, '완료 알림', f'길드원 목록 갱신이 완료되었습니다.\n 소요시간: {time.time()-startTime:.2f}초')
+        QMessageBox.information(self, '완료 알림', f'길드원 목록 갱신이 완료되었습니다.\n소요시간: {time.time() - startTime:.2f}초')
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Enter:
@@ -55,15 +56,17 @@ class MyApp(QWidget):
     def list_update(self, guild_name):
         global driver_ver
         try:
-            driver_ver = edgedriver_autoinstaller.get_edge_version().split('.')[0]  # 크롬 드라이버 버전 확인
+            driver_ver = edgedriver_autoinstaller.get_edge_version().split('.')[0]  # Edge 브라우저 드라이버 버전 확인
             browser = "edge"
-        except:
+        except:  # Edge 브라우저가 없는 환경인 경우 --> 크롬으로 대체
             driver_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]
             browser = "chrome"
 
         if browser == "edge":
             options = webdriver.EdgeOptions()  # 옵션 생성
             options.add_argument("--headless")  # 창 숨기는 옵션 추가
+            caps = DesiredCapabilities().EDGE
+            caps['pageLoadStrategy'] = 'none'
             try:
                 driver = webdriver.Edge(f'./{driver_ver}/msedgedriver', options=options)
             except:
@@ -73,6 +76,8 @@ class MyApp(QWidget):
         elif browser == "chrome":
             options = webdriver.ChromeOptions()  # 옵션 생성
             options.add_argument("--headless")  # 창 숨기는 옵션 추가
+            caps = DesiredCapabilities().CHROME
+            caps['pageLoadStrategy'] = 'none'
             try:
                 driver = webdriver.Chrome(f'./{driver_ver}/chromedriver', options=options)
             except:
@@ -85,8 +90,8 @@ class MyApp(QWidget):
         guild_soup = BeautifulSoup(driver.page_source, 'html.parser')
         member_list = guild_soup.find_all('table', {'class': 'tfs13'})
 
-        for iter in member_list:
-            cname = iter.find('span', {'class': 'text-theme-0 tfs13'}).text.strip()
+        for itr in member_list:
+            cname = itr.find('span', {'class': 'text-theme-0 tfs13'}).text.strip()
             driver.get(url + cname)
 
         driver.quit()
