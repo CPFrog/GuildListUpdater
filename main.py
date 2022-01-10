@@ -95,7 +95,7 @@ class MyApp(QWidget):
 
         for itr in member_list:
             cname = itr.find('span', {'class': 'text-theme-0 tfs13'}).text.strip()
-            print(cname)
+            # print(cname)
             driver.get(url + cname)
 
         driver.quit()
