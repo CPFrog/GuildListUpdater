@@ -8,7 +8,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import chromedriver_autoinstaller
 import edgedriver_autoinstaller
 
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 
 class MyApp(QWidget):
@@ -17,7 +17,7 @@ class MyApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('로스트아크 길드원 목록 갱신 v1.3 by CP개구링')
+        self.setWindowTitle('로스트아크 길드원 목록 갱신 v1.3.1 by CP개구링')
         grid = QGridLayout()
         self.setLayout(grid)
 
@@ -36,11 +36,13 @@ class MyApp(QWidget):
 
     def button_event(self):
         guild = self.gname_text.text()
-        startTime = time.time()
+        start_time = time.time()
 
-        pool = Pool(processes=8)
+        pool = Pool(processes=cpu_count() * 2)
         pool.map(member_update, getlist(guild))
-        QMessageBox.information(self, '완료 알림', f'길드원 목록 갱신이 완료되었습니다.\n소요시간: {time.time() - startTime:.2f}초')
+        pool.close()
+        pool.join()
+        QMessageBox.information(self, '완료 알림', f'길드원 목록 갱신이 완료되었습니다.\n소요시간: {time.time() - start_time:.2f}초')
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Enter:
