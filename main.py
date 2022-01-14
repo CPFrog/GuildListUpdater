@@ -17,7 +17,7 @@ class MyApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('로스트아크 길드원 목록 갱신 v1.3.1 by CP개구링')
+        self.setWindowTitle('로스트아크 길드원 목록 갱신 v1.3.2 by CP개구링')
         grid = QGridLayout()
         self.setLayout(grid)
 
@@ -52,7 +52,7 @@ class MyApp(QWidget):
             self.close()
 
     def closeEvent(self, e):
-        QMessageBox.information(self, '프로그램 종료 알림', '프로그램이 종료됩니다.')
+        QMessageBox.information(self, '종료 알림', '프로그램이 종료됩니다.')
 
 
 def getlist(guild_name):
@@ -62,7 +62,7 @@ def getlist(guild_name):
     guild_url = 'https://loawa.com/guild/'
     driver.get(guild_url + guild_name)
     guild_soup = BeautifulSoup(driver.page_source, 'html.parser')
-    member_list = guild_soup.find_all('table', {'class': 'tfs13'})
+    member_list = guild_soup.find_all('table', {'cellpadding': '1', 'style': 'width: 100%; font-size: 13px;'})
 
     driver.quit()
 
@@ -85,7 +85,7 @@ def member_update(member_list):
     driver = getdriver(driver_ver, browser, False)
     url = 'https://loawa.com/char/'
     for itr in member_list:
-        cname = itr.find('span', {'class': 'text-theme-0 tfs13'}).text.strip()
+        cname = itr.find('span', {'style': 'font-size: 13px; color: var(--theme-0); letter-spacing: -1px;'}).text.strip()
         driver.get(url + cname)
 
     driver.quit()
