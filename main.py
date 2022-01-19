@@ -85,7 +85,8 @@ def member_update(member_list):
     driver = getdriver(driver_ver, browser, False)
     url = 'https://loawa.com/char/'
     for itr in member_list:
-        cname = itr.find('span', {'style': 'font-size: 13px; color: var(--theme-0); letter-spacing: -1px;'}).text.strip()
+        cname = itr.find('span',
+                         {'style': 'font-size: 13px; color: var(--theme-0); letter-spacing: -1px;'}).text.strip()
         driver.get(url + cname)
 
     driver.quit()
