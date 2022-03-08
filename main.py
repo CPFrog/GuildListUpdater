@@ -17,7 +17,7 @@ class MyApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('로스트아크 길드원 목록 갱신 v1.3.2 by CP개구링')
+        self.setWindowTitle('LOAWA 길드원 목록 갱신 v1.3.5 by CP개구링')
         grid = QGridLayout()
         self.setLayout(grid)
 
@@ -73,7 +73,7 @@ def get_driver_ver():
     try:
         driver_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]
         browser = 0  # chrome의 브라우저 코드 = 0
-    except:  # Edge 브라우저가 없는 환경인 경우 --> 크롬으로 대체
+    except:  # 크롬 브라우저가 없는 환경인 경우 --> Edge으로 대체
         driver_ver = edgedriver_autoinstaller.get_edge_version().split('.')[0]  # Edge 브라우저 드라이버 버전 확인
         browser = 1  # edge의 브라우저 코드 = 1
     # 나중에 할진 모르겠지만.. safari = 2, firefox = 3, opera = 4
@@ -82,11 +82,13 @@ def get_driver_ver():
 
 def member_update(member_list):
     driver_ver, browser = get_driver_ver()
-    driver = getdriver(driver_ver, browser, False)
+    # v1.3.5부터 pageloadstrategy를 none(로드 여부 관계 없이 다음 코드 실행)으로 둘 경우 갱신되지 않는 오류로 인해 needwait를 True로 설정.
+    driver = getdriver(driver_ver, browser, True)
     url = 'https://loawa.com/char/'
     for itr in member_list:
         cname = itr.find('span',
                          {'style': 'font-size: 13px; color: var(--theme-0); letter-spacing: -1px;'}).text.strip()
+        print(cname)
         driver.get(url + cname)
 
     driver.quit()
@@ -98,7 +100,7 @@ def getdriver(ver, browser_type, needwait=True):
         options.add_argument('--headless')  # 창 숨기는 옵션 추가
         dc = DesiredCapabilities.CHROME.copy()
         dc['loggingPrefs'] = {'driver': 'OFF', 'server': 'OFF', 'browser': 'OFF'}
-        if not needwait:
+        if not needwait:  # v1.3.5부터 갱신 오류로 인해 사용하지 않게 되었지만 나중을 위해 코드 유지.
             dc['pageLoadStrategy'] = 'none'
         try:
             driver = webdriver.Chrome(f'./{ver}/chromedriver', options=options, desired_capabilities=dc)
@@ -111,7 +113,7 @@ def getdriver(ver, browser_type, needwait=True):
         options.add_argument('--headless')  # 창 숨기는 옵션 추가
         dc = DesiredCapabilities.EDGE.copy()
         dc['loggingPrefs'] = {'driver': 'OFF', 'server': 'OFF', 'browser': 'OFF'}
-        if not needwait:
+        if not needwait:  # v1.3.5부터 갱신 오류로 인해 사용하지 않게 되었지만 나중을 위해 코드 유지.
             dc['pageLoadStrategy'] = 'none'
         try:
             driver = webdriver.Edge(f'./{ver}/msedgedriver', options=options, capabilities=dc)
